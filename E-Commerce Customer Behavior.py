@@ -19,17 +19,16 @@ data_clean = data.drop([
     'Product_Category', 'Payment_Method', 'Device_Type'
 ], axis=1)
 
-# Step 5: Convert boolean column to numeric (True=1, False=0)
+# Step 5: Convert boolean column to numeric
 data_clean['Is_Returning_Customer'] = data_clean['Is_Returning_Customer'].astype(int)
 
-# Step 6: Scale features for K-Means
+# Step 6: Scale features
 scaler = StandardScaler()
 scaled_data = scaler.fit_transform(data_clean)
 
 # Step 7: Find best k (Elbow Method)
 inertia = []
 K = range(1, 11)
-
 for k in K:
     kmeans = KMeans(n_clusters=k, random_state=42)
     kmeans.fit(scaled_data)
@@ -38,23 +37,25 @@ for k in K:
 plt.plot(K, inertia, 'bx-')
 plt.xlabel('Number of Clusters (k)')
 plt.ylabel('Inertia')
-plt.title('Elbow Method to find Optimal k')
+plt.title('Elbow Method to Find Optimal k')
 plt.show()
 
-# Step 8: Choose k (e.g., 4) and fit model
+# Step 8: Train model (pick k=4 as example)
 kmeans = KMeans(n_clusters=4, random_state=42)
 kmeans.fit(scaled_data)
 data['Cluster'] = kmeans.labels_
 
-# Step 9: View grouped data
-print(data.groupby('Cluster').mean())
+# Step 9: Show numeric averages by cluster
+numeric_cols = data.select_dtypes(include=[np.number])
+cluster_summary = numeric_cols.groupby(data['Cluster']).mean()
+print(cluster_summary)
 
-# Step 10: Visualize (example: Age vs Total_Amount)
+# Step 10: Visualize Age vs Total_Amount
 plt.figure(figsize=(8,6))
 sns.scatterplot(x='Age', y='Total_Amount', hue='Cluster', data=data, palette='viridis')
-plt.title('Customer Segmentation by Age and Spending')
+plt.title('Customer Segmentation by Age and Total Spending')
 plt.show()
 
-# Step 11: Save results
+# Step 11: Save clustered dataset
 data.to_csv("E-Commerce_Customer_Behavior_with_Clusters.csv", index=False)
-print("File saved: E-Commerce_Customer_Behavior_with_Clusters.csv")
+print("Saved as: E-Commerce_Customer_Behavior_with_Clusters.csv")
